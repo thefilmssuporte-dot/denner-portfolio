@@ -15,7 +15,6 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
                 className="project-video"
                 src={project.video}
                 muted
-                autoPlay
                 loop
                 playsInline
                 preload="metadata"
