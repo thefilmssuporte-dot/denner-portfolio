@@ -17,7 +17,7 @@ export default function HeroVideo() {
     <video
       className="hero-video"
       ref={videoRef}
-      src="https://res.cloudinary.com/wtjfrix6/video/upload/v1789267924/Modelo_institucional_1.mp4"
+      src="https://res.cloudinary.com/wtjfrix6/video/upload/v1789267919/TBT_RODEIO_2024.mp4"
       autoPlay
       muted
       loop
