@@ -15,6 +15,23 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
     void videoRef.current.play().catch(() => undefined);
   }
 
+  function handleWatchClick(event: React.MouseEvent<HTMLButtonElement>) {
+    const details = event.currentTarget.closest("details");
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!details) return;
+
+    const shouldOpen = !details.open;
+    details.open = shouldOpen;
+
+    if (!shouldOpen || !videoRef.current) return;
+
+    videoRef.current.muted = true;
+    void videoRef.current.play().catch(() => undefined);
+  }
+
   return (
     <article className={`project-card ${index % 2 ? "project-card-offset" : ""}`}>
       <details onToggle={handleToggle}>
@@ -25,6 +42,7 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
                 className="project-video"
                 ref={videoRef}
                 src={project.video}
+                poster={project.thumbnail}
                 muted
                 loop
                 playsInline
@@ -36,6 +54,14 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
             )}
             <span className="visual-number">0{index + 1}</span>
             <span className="visual-arrow" aria-hidden="true">↗</span>
+            <button
+              type="button"
+              className="visual-cta"
+              aria-label={`Assistir ao vídeo de ${project.title}`}
+              onClick={handleWatchClick}
+            >
+              Assistir
+            </button>
           </div>
         </summary>
       </details>
