@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Denner Lopes | Videomaker, Filmmaker & Content Producer",
-  description: "Portfólio audiovisual de Denner Lopes.",
+  title: "Denner Lopes | Videomaker, Video Editor & Content Producer",
+  description: "Portfólio de Denner Lopes, videomaker, editor de vídeo e produtor de conteúdo. Produção e edição audiovisual para marcas, empresas, eventos e conteúdo digital.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
