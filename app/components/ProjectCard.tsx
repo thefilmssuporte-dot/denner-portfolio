@@ -11,7 +11,6 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
   function handleToggle(event: SyntheticEvent<HTMLDetailsElement>) {
     if (!event.currentTarget.open || !videoRef.current) return;
 
-    videoRef.current.muted = true;
     void videoRef.current.play().catch(() => undefined);
   }
 
@@ -28,7 +27,6 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
 
     if (!shouldOpen || !videoRef.current) return;
 
-    videoRef.current.muted = true;
     void videoRef.current.play().catch(() => undefined);
   }
 
@@ -43,7 +41,6 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
                 ref={videoRef}
                 src={project.video}
                 poster={project.thumbnail}
-                muted
                 loop
                 playsInline
                 preload="metadata"
