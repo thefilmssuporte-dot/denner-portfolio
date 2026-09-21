@@ -1,9 +1,12 @@
 "use client";
 
-import { useRef, useState, type SyntheticEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type SyntheticEvent } from "react";
 import type { Project } from "@/src/data/projects";
 
 type ProjectCardProps = { project: Project; index: number };
+
+// Only ProjectCard instances register here; the hero is never included.
+const portfolioVideos = new Set<HTMLVideoElement>();
 
 export default function ProjectCard({ project, index }: ProjectCardProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -11,13 +14,75 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
+  const prepareVideo = useCallback(() => {
+    const video = videoRef.current;
+    if (video && video.getAttribute("src") !== project.video) {
+      video.src = project.video;
+    }
+  }, [project.video]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    portfolioVideos.add(video);
+
+    // Without IntersectionObserver, an explicit play still loads the video.
+    if (typeof IntersectionObserver === "undefined") {
+      return () => {
+        video.pause();
+        portfolioVideos.delete(video);
+      };
+    }
+
+    const loadObserver = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        prepareVideo();
+        loadObserver.disconnect();
+      }
+    }, { rootMargin: "300px 0px" });
+
+    const visibilityObserver = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => !entry.isIntersecting || entry.intersectionRatio < 0.1)) {
+        video.pause();
+      }
+    }, { threshold: [0, 0.1] });
+
+    loadObserver.observe(video);
+    visibilityObserver.observe(video);
+
+    return () => {
+      loadObserver.disconnect();
+      visibilityObserver.disconnect();
+      video.pause();
+      portfolioVideos.delete(video);
+    };
+  }, [prepareVideo]);
+
+  function pauseOtherCards() {
+    for (const video of portfolioVideos) {
+      if (video !== videoRef.current) video.pause();
+    }
+  }
+
+  function playVideo() {
+    prepareVideo();
+    pauseOtherCards();
+    void videoRef.current?.play().catch(() => undefined);
+  }
+
+  function handlePlay() {
+    pauseOtherCards();
+    setIsPlaying(true);
+  }
+
   function togglePlayback() {
     const video = videoRef.current;
     if (!video) return;
 
     if (video.paused) {
       if (detailsRef.current) detailsRef.current.open = true;
-      void video.play().catch(() => undefined);
+      playVideo();
     } else {
       video.pause();
     }
@@ -29,9 +94,11 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
   }
 
   function handleToggle(event: SyntheticEvent<HTMLDetailsElement>) {
-    if (!event.currentTarget.open || !videoRef.current) return;
-
-    void videoRef.current.play().catch(() => undefined);
+    if (event.currentTarget.open) {
+      playVideo();
+    } else {
+      videoRef.current?.pause();
+    }
   }
 
   function handleWatchClick(event: React.MouseEvent<HTMLButtonElement>) {
@@ -45,9 +112,11 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
     const shouldOpen = !details.open;
     details.open = shouldOpen;
 
-    if (!shouldOpen || !videoRef.current) return;
-
-    void videoRef.current.play().catch(() => undefined);
+    if (shouldOpen) {
+      playVideo();
+    } else {
+      videoRef.current?.pause();
+    }
   }
 
   return (
@@ -60,12 +129,11 @@ export default function ProjectCard({ project, index }: ProjectCardProps) {
               <video
                 className="project-video"
                 ref={videoRef}
-                src={project.video}
                 poster={project.thumbnail}
                 loop
                 playsInline
                 preload="metadata"
-                onPlay={() => setIsPlaying(true)}
+                onPlay={handlePlay}
                 onPause={() => setIsPlaying(false)}
                 onEnded={() => setIsPlaying(false)}
                 onVolumeChange={(event) => setIsMuted(event.currentTarget.muted)}
